@@ -17,3 +17,8 @@ cloudevents-sdk = "0.3.1"
 url = "2.2.1"
 tide-naive-static-files = "2.2.0"
 http-types = "2.10.0"
+uuid = "0.8.2"
+serde_json = "1.0.64"
+
+[dev-dependencies]
+surf = "2.2.0"
