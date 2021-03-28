@@ -12,4 +12,10 @@ Cargo.lock
 
 # Added by cargo
 
-/target
+node_modules
+*/dist
+*/target
+*/pkg
+*/wasm-pack.log
+
+/bak
