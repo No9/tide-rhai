@@ -1,11 +1,23 @@
+//extern crate dotenv;
+//extern crate s3;
+
 use cloudevents_sdk_tide::*;
 //use cloudevents_sdk_tide::Event;
 use rhai::serde::{from_dynamic, to_dynamic};
-use rhai::{Dynamic, Engine, Scope};
+use serde_json::{Value};
+use rhai::{Dynamic, Engine, Scope, ImmutableString};
+use rhai::RegisterFn;                       // use 'RegisterFn' trait for 'register_fn'
+// use rhai::RegisterResultFn; 
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tide::{Body, Response, StatusCode};
 use tide::utils::After;
+use dotenv::dotenv;
+use s3::bucket::Bucket;
+use s3::creds::Credentials;
+use s3::region::Region;
+use std::env;
+use std::str;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct Script {
@@ -31,8 +43,80 @@ impl State {
     }
 }
 
+#[allow(dead_code)]
+struct Storage {
+    name: String,
+    region: Region,
+    credentials: Credentials,
+    bucket: String,
+    location_supported: bool,
+}
+
+fn log(s: ImmutableString) {
+    println!("{:?}", s)
+}
+
+fn log_dynamic(s: Dynamic) {
+    println!("{:?}", s)
+}
+
+fn get_object(s:ImmutableString) -> ImmutableString {
+    let s3_access_key = env::var("S3_ACCESS_KEY").unwrap_or_default();
+    let s3_secret = env::var("S3_SECRET").unwrap_or_default();
+    let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
+    let s3_region = env::var("S3_REGION").unwrap_or_default();
+    let s3 = Storage {
+        name: "aws".into(),
+        region: s3_region.to_string().parse().unwrap(),
+        credentials: Credentials::new(Some(s3_access_key.as_str()), Some(s3_secret.as_str()), None, None, None)
+            .unwrap(),
+        bucket: s3_bucket_name,
+        location_supported: false,
+    };
+
+    let bucket = match Bucket::new(&s3.bucket, s3.region, s3.credentials) {
+        Ok(v) => v,
+        Err(e) => panic!("Bucket Creation Failed: {}", e),
+    };
+
+    let (data, _code) = bucket.get_object_blocking(s.as_str()).unwrap();
+
+    //let (d, c) = bucket.get_object("/test.file").unwrap();
+    
+    let r : ImmutableString = str::from_utf8(&data).unwrap().into();
+    r
+}
+
+fn get_object_as_map(s:ImmutableString) -> Dynamic {
+    let s3_access_key = env::var("S3_ACCESS_KEY").unwrap_or_default();
+    let s3_secret = env::var("S3_SECRET").unwrap_or_default();
+    let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
+    let s3_region = env::var("S3_REGION").unwrap_or_default();
+    let s3 = Storage {
+        name: "aws".into(),
+        region: s3_region.to_string().parse().unwrap(),
+        credentials: Credentials::new(Some(s3_access_key.as_str()), Some(s3_secret.as_str()), None, None, None)
+            .unwrap(),
+        bucket: s3_bucket_name,
+        location_supported: false,
+    };
+
+    let bucket = match Bucket::new(&s3.bucket, s3.region, s3.credentials) {
+        Ok(v) => v,
+        Err(e) => panic!("Bucket Creation Failed: {}", e),
+    };
+
+    let (data, _code) = bucket.get_object_blocking(s.as_str()).unwrap();
+
+    //let (d, c) = bucket.get_object("/test.file").unwrap();
+    let v: Value = serde_json::from_str(str::from_utf8(&data).unwrap()).unwrap();
+    let dyn_event: Dynamic = to_dynamic(v).unwrap();
+    dyn_event
+}
+
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+    dotenv().ok();
     tide::log::start();
     let mut app = tide::with_state(State::new());
     // curl -d "{\"name\": \"chashu\"}" http://127.0.0.1:8080/
@@ -70,9 +154,16 @@ async fn main() -> tide::Result<()> {
 
             let script_content: String = session
                 .get("script_content")
-                .unwrap_or(String::from(r#"event"#));
+                .unwrap_or(String::from(r#"log(event);event"#));
 
-            let engine = Engine::new();
+            // let engine = Engine::new();
+            let mut engine = Engine::new_raw();
+            engine.register_fn("log", log);
+            engine.register_fn("log", log_dynamic);
+            engine.register_fn("get_object", get_object);
+            engine.register_fn("get_object_map", get_object_as_map);
+            
+            
             let dyn_event: Dynamic = to_dynamic(evtreq).unwrap();
             let mut scope = Scope::new();
             scope.push("event", dyn_event);

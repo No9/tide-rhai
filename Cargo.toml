@@ -12,13 +12,15 @@ async-std = { version = "1", features = ["attributes"] }
 serde = { version = "1.0.117", features = ["derive"] }
 openapi = "0.1.5"
 anyhow = "1.0.38"
-rhai = { version = "0.19.13", features = ["serde"] }
+rhai = { version = "0.19.14", features = ["serde"] }
 url = "2.2.1"
 tide-naive-static-files = "2.2.0"
 http-types = "2.10.0"
 uuid = "0.8.2"
 serde_json = "1.0.64"
 cloudevents-sdk-tide = { git = "https://github.com/no9/sdk-rust", branch = "tide-support" }
+rust-s3 = "0.26.4"
+dotenv = "0.15.0"
 # cloudevents-sdk-tide = { path = "../sdk-rust/cloudevents-sdk-tide", version="0.0.1" }
 
 [dev-dependencies]
