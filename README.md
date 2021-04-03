@@ -49,7 +49,7 @@ $ cargo add tide-rhai
 ## Overview
 
 This component provides the ability to run [rhai scripts](https://github.com/rhaiscript/rhai) to process http requests in [tide](https://github.com/http-rs/tide).
-Currently it only supprts modifying the messages but additional are being considered.
+Currently it only supprts modifying the messages but additional features such as a http client are being considered.
 
 ## Install 
 ```
