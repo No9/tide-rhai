@@ -76,13 +76,15 @@ The first parameter for new is the prefix and should be mapped to the `at` param
 The second is the folder with the rhai scripts in 
 
 Creat a rhai script called headers.rhai that selects a header and returns it in a JSON Message.
-Note it doesn't have to be called .rhai but VS Code has suppport for that file extention.
+Note it doesn't have to be called .rhai but [VS Code](https://marketplace.visualstudio.com/items?itemName=Aster.vscode-rhai) has suppport for that file extention.
 
 ```rust
 let obj = #{};
 obj.message = "Is this acceptable?" + ctx.headers["accept"];
 obj
 ```
+Here we are using the `headers` property of the context object. If this was a POST then the `ctx` object would also contain a `data` property with the JSON that has been sent to the server.
+
 
 When you now run to https://localhost:8080/headers.rhai you should see the following:
 ```json
