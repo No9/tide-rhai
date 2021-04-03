@@ -72,10 +72,11 @@ async fn main() -> Result<(), std::io::Error> {
     Ok(())
 }
 ```
-The first parameter for new is the prefix so map to the `at` parameter. 
+The first parameter for new is the prefix and should be mapped to the `at` parameter. 
 The second is the folder with the rhai scripts in 
 
-Creat a rhai script called headers.rhai that selects a header and returns it in a JSON Message
+Creat a rhai script called headers.rhai that selects a header and returns it in a JSON Message.
+Note it doesn't have to be called .rhai but VS Code has suppport for that file extention.
 
 ```rust
 let obj = #{};
