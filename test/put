@@ -1,0 +1,2 @@
+ctx.data.hello = "rhai";
+ctx.data
