@@ -58,7 +58,7 @@ $ cargo add tide-rhai
 
 ## Example
 
-Create a tide server that points to a directory containing tide scripts.
+Create a tide server that points to a directory containing rhai scripts.
 
 ```rust
 use tide_rhai::RhaiDir;
