@@ -21,6 +21,8 @@ rhai = { version = "0.19.15", features = ["serde"] }
 serde = { version = "1.0.117", features = ["derive"] }
 serde_json = "1.0.64"
 http-types = "2.10.0"
+log = "0.4.14"
+surf = "2.2.0"
 [dev-dependencies]
 async-std = { version = "1.6.5", features = ["unstable", "attributes"] }
 tempfile = "3.1.0"

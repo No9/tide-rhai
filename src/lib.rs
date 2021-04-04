@@ -1,3 +1,6 @@
+// mod fetch;
+mod logging;
+
 use async_std::path::PathBuf as AsyncPathBuf;
 use rhai::serde::{from_dynamic, to_dynamic};
 use rhai::{Dynamic, Engine, Scope};
@@ -102,7 +105,18 @@ where
                     let dyn_ctx: Dynamic = to_dynamic(ctx).unwrap();
                     let mut scope = Scope::new();
                     scope.push("ctx", dyn_ctx);
-                    let engine = Engine::new_raw();
+                    let mut engine = Engine::new_raw();
+
+                    engine.register_fn("log", logging::log);
+                    engine.register_fn("log", logging::log_dynamic);
+                    engine.register_fn("info", logging::info);
+                    engine.register_fn("info", logging::info_dynamic);
+                    engine.register_fn("warn", logging::warn);
+                    engine.register_fn("warn", logging::warn_dynamic);
+                    engine.register_fn("error", logging::error);
+                    engine.register_fn("error", logging::error_dynamic);
+                    // engine.register_fn("fetch", fetch::fetch);
+                    
                     let result = match engine.eval_with_scope(&mut scope, s.as_str()) {
                         Ok::<Dynamic, _>(o) => {
                             let evt: Value = match from_dynamic(&o) {
@@ -141,7 +155,7 @@ mod test {
 
     #[async_std::test]
     async fn get() {
-        tide::log::start();
+        
         let mut app = tide::new();
 
         app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
@@ -188,5 +202,21 @@ mod test {
             app.post("/parse_error").await.unwrap().status(),
             tide::http::StatusCode::InternalServerError
         );
+    }
+    #[async_std::test]
+    async fn logging() {
+        
+        let mut app = tide::new();
+        tide::log::start();
+        app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
+
+        use tide_testing::TideTestingExt;
+        let response_body: serde_json::value::Value = app
+        .get("/logging")
+        .recv_json()
+            .await
+            .unwrap();
+
+        assert_eq!(response_body, json!({"message":"some data"}));
     }
 }

@@ -1,0 +1,11 @@
+let obj = #{};
+obj.message = "some data";
+info("info string");
+info(obj);
+warn(obj);
+error(obj);
+warn("warn string");
+error("error string");
+log("error string");
+log(obj);
+obj
