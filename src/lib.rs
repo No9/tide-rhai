@@ -1,9 +1,9 @@
-// mod fetch;
+mod fetch;
 mod logging;
 
 use async_std::path::PathBuf as AsyncPathBuf;
 use rhai::serde::{from_dynamic, to_dynamic};
-use rhai::{Dynamic, Engine, Scope};
+use rhai::{Dynamic, Engine, ImmutableString, Scope};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -107,16 +107,54 @@ where
                     scope.push("ctx", dyn_ctx);
                     let mut engine = Engine::new_raw();
 
-                    engine.register_fn("log", logging::log);
-                    engine.register_fn("log", logging::log_dynamic);
-                    engine.register_fn("info", logging::info);
-                    engine.register_fn("info", logging::info_dynamic);
-                    engine.register_fn("warn", logging::warn);
-                    engine.register_fn("warn", logging::warn_dynamic);
-                    engine.register_fn("error", logging::error);
-                    engine.register_fn("error", logging::error_dynamic);
-                    // engine.register_fn("fetch", fetch::fetch);
-                    
+                    engine.register_fn("log", logging::log::<i64>);
+                    engine.register_fn("log", logging::log::<ImmutableString>);
+                    engine.register_fn("log", logging::log::<bool>);
+                    engine.register_fn("log", logging::log::<Dynamic>);
+                    engine.register_fn("info", logging::info::<i64>);
+                    engine.register_fn("info", logging::info::<ImmutableString>);
+                    engine.register_fn("info", logging::info::<bool>);
+                    engine.register_fn("info", logging::info::<Dynamic>);
+                    engine.register_fn("warn", logging::warn::<i64>);
+                    engine.register_fn("warn", logging::warn::<ImmutableString>);
+                    engine.register_fn("warn", logging::warn::<bool>);
+                    engine.register_fn("warn", logging::warn::<Dynamic>);
+                    engine.register_fn("error", logging::error::<i64>);
+                    engine.register_fn("error", logging::error::<ImmutableString>);
+                    engine.register_fn("error", logging::error::<bool>);
+                    engine.register_fn("error", logging::error::<Dynamic>);
+                    engine.register_result_fn("fetch", fetch::fetch);
+                    engine
+                        .register_type::<fetch::Options>()
+                        .register_get_set("url", fetch::Options::get_url, fetch::Options::set_url)
+                        .register_get_set(
+                            "method",
+                            fetch::Options::get_method,
+                            fetch::Options::set_method,
+                        )
+                        .register_get_set(
+                            "headers",
+                            fetch::Options::get_headers,
+                            fetch::Options::set_headers,
+                        )
+                        .register_get_set(
+                            "body",
+                            fetch::Options::get_body,
+                            fetch::Options::set_body,
+                        )
+                        .register_fn("fetch_options", fetch::Options::new);
+                    engine
+                        .register_type::<fetch::Response>()
+                        .register_get_set(
+                            "headers",
+                            fetch::Response::get_headers,
+                            fetch::Response::set_headers,
+                        )
+                        .register_get_set(
+                            "body",
+                            fetch::Response::get_body,
+                            fetch::Response::set_body,
+                        );
                     let result = match engine.eval_with_scope(&mut scope, s.as_str()) {
                         Ok::<Dynamic, _>(o) => {
                             let evt: Value = match from_dynamic(&o) {
@@ -131,7 +169,7 @@ where
                             Ok(Response::builder(StatusCode::Ok).body(evt).build())
                         }
                         Err(e) => {
-                            log::warn!("Script execution error: {:?}", e);
+                            log::error!("Script execution error: {:?}", e);
                             Ok(Response::new(StatusCode::InternalServerError))
                         }
                     };
@@ -155,7 +193,6 @@ mod test {
 
     #[async_std::test]
     async fn get() {
-        
         let mut app = tide::new();
 
         app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
@@ -205,18 +242,36 @@ mod test {
     }
     #[async_std::test]
     async fn logging() {
-        
         let mut app = tide::new();
         tide::log::start();
         app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
 
         use tide_testing::TideTestingExt;
-        let response_body: serde_json::value::Value = app
-        .get("/logging")
-        .recv_json()
-            .await
-            .unwrap();
+        let response_body: serde_json::value::Value =
+            app.get("/logging").recv_json().await.unwrap();
 
         assert_eq!(response_body, json!({"message":"some data"}));
+    }
+
+    #[async_std::test]
+    async fn fetch() {
+        let mut app = tide::new();
+        app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
+
+        use tide_testing::TideTestingExt;
+        let response_body: serde_json::value::Value = app.get("/fetch").recv_json().await.unwrap();
+
+        assert_eq!(response_body, json!({"url":"https://httpbin.org/get"}));
+    }
+
+    #[async_std::test]
+    async fn post() {
+        let mut app = tide::new();
+        app.at("/*").all(RhaiDir::new("/*", "./test").unwrap());
+
+        use tide_testing::TideTestingExt;
+        let response_body: serde_json::value::Value = app.get("/post").recv_json().await.unwrap();
+
+        assert_eq!(response_body, json!({"url":"https://httpbin.org/post"}));
     }
 }

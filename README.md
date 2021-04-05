@@ -89,5 +89,21 @@ image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.
 This example can also be ran by cloning this repository and running 
 
 ```bash
-$ cargo run --example helloworld
+$ cargo run --example samples
 ```
+
+Then browse to: 
+
+http://localhost:8080/helloworld.rhai
+http://localhost:8080/headers.rhai
+http://localhost:8080/fetch.rhai
+
+
+
+## Todo List
+
+- [x] Logging - Integrate with tide logging system
+- [x] Http Client - A fetch-like API
+- [ ] Benchmarks - Set of scripts to manage regressions
+- [ ] Observability - Support for BPF/DTrace probes. Maybe flamegraphs or statemaps
+- [ ] Module System - Rhai supports modules but doesn't have a modeue system.

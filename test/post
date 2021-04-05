@@ -1,0 +1,9 @@
+let fetchoptions = fetch_options();
+fetchoptions.url = "https://httpbin.org/post";
+fetchoptions.body = #{"name": "chashu" };
+fetchoptions.method = "POST";
+let result = fetch(fetchoptions);
+log(result.body.origin);
+let retval = #{};
+retval.url = fetchoptions.url;
+retval

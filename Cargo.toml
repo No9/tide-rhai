@@ -1,6 +1,6 @@
 [package]
 name = "tide-rhai"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Anthony Whalley <anton@venshare.com>"]
 edition = "2018"
 license-file = "LICENSE"
