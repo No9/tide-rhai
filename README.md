@@ -103,7 +103,7 @@ http://localhost:8080/fetch.rhai
 ## Todo List
 
 - [x] Logging - Integrate with tide logging system
-- [x] Http Client - A fetch-like API
+- [x] Http Client - A fetch-like API (alpha implementation known to lock in self referencing scenarios)
 - [ ] Benchmarks - Set of scripts to manage regressions
 - [ ] Observability - Support for BPF/DTrace probes. Maybe flamegraphs or statemaps
 - [ ] Module System - Rhai supports modules but doesn't have a modeue system.
